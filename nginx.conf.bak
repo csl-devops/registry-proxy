@@ -1,131 +1,20 @@
-upstream nexus {
-  server nexus3:8081;
-}
-upstream hub {
-  server nexus3:8082;
-}
-upstream reg {
-  server harbor.cmdi.cmcc:443;
-}
-upstream gcr {
-  server reg-gcr:5000;
-}
-upstream gcrui {
-  server reg-ui:80;
-}
-upstream k8sgcr {
-  server reg-k8s-gcr:5000;
-}
 server {
     listen       80;
     listen       443 ssl;
-    server_name  nexus.cmdi.cmcc;
-    proxy_connect_timeout 600;
-    proxy_send_timeout    600;
-    proxy_read_timeout    600;
-    send_timeout          600;
-    ssl_certificate /etc/nginx/ssl/server.crt;
-    ssl_certificate_key /etc/nginx/ssl/server.key;
-    location / {
-        proxy_pass   http://nexus/;
-        proxy_buffering off;
-        proxy_request_buffering off;
-    }
-}
-server {
-    listen       80;
-    listen       443 ssl;
-    server_name  mirrors.cmdi.cmcc;
-    proxy_connect_timeout 600;
-    proxy_send_timeout    600;
-    proxy_read_timeout    600;
-    send_timeout          600;
-    ssl_certificate /etc/nginx/ssl/server.crt;
-    ssl_certificate_key /etc/nginx/ssl/server.key;
-    location / {
-        proxy_pass   http://nexus/;
-        proxy_buffering off;
-        proxy_request_buffering off;
-    }
-}
-server {
-    listen       80;
-    listen       443 ssl;
-    server_name  hub.cmdi.cmcc;
-    proxy_connect_timeout 600;
-    proxy_send_timeout    600;
-    proxy_read_timeout    600;
-    send_timeout          600;
-    ssl_certificate /etc/nginx/ssl/server.crt;
-    ssl_certificate_key /etc/nginx/ssl/server.key;
-    location / {
-        proxy_pass   http://hub/;
-        proxy_buffering off;
-        proxy_request_buffering off;
-        proxy_set_header Host $host;
-    }
-}
-server {
-    listen       80;
-    listen       443 ssl;
-    server_name  reg.cmdi.cmcc;  
-    proxy_connect_timeout 600;
-    proxy_send_timeout    600;
-    proxy_read_timeout    600;
-    send_timeout          600; 
-    client_max_body_size  2048m;  
-    ssl_certificate /etc/nginx/ssl/server.crt;
-    ssl_certificate_key /etc/nginx/ssl/server.key;   
-    location / {
-        proxy_pass   https://reg/;
-        proxy_buffering off;
-        proxy_request_buffering off;
-        proxy_ssl_server_name on;
-        proxy_ssl_name harbor.cmdi.cmcc;
-        proxy_set_header Host $host;
-    }
-    location /harbor/ {
-        proxy_pass https://reg/harbor/;
-        proxy_set_header Host $http_host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_ssl_server_name on;
-        proxy_ssl_name harbor.cmdi.cmcc;
-      
-        # When setting up Harbor behind other proxy, such as an Nginx instance, remove the below line if the proxy already has similar settings.
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_buffering off;
-        proxy_request_buffering off;
-        proxy_send_timeout 900;
-        proxy_read_timeout 900;
-    }
-}
-server {
-    listen       80;
-    listen       443 ssl;
-    server_name  gcr.cmdi.cmcc;
-    proxy_connect_timeout 600;
-    proxy_send_timeout    600;
-    proxy_read_timeout    600;
-    send_timeout          600;
-    ssl_certificate /etc/nginx/ssl/server.crt;
-    ssl_certificate_key /etc/nginx/ssl/server.key;
-    location / {
-        proxy_pass   http://gcr;
-        proxy_buffering off;
-        proxy_request_buffering off;
-        proxy_set_header Host $host;
-    }
-    location /ui/ {
-        proxy_pass   http://gcrui;
-        proxy_set_header Host $http_host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      
-        # When setting up Harbor behind other proxy, such as an Nginx instance, remove the below line if the proxy already has similar settings.
-        proxy_set_header X-Forwarded-Proto $scheme;
 
-        proxy_cookie_path / "/; Secure";
+    server_name  nexus.cmdi.cmcc;
+
+    proxy_connect_timeout 600;
+    proxy_send_timeout    600;
+    proxy_read_timeout    600;
+    send_timeout          600;
+
+    ssl_certificate /etc/nginx/ssl/server.crt;
+    ssl_certificate_key /etc/nginx/ssl/server.key;
+
+    location / {
+        proxy_pass   http://nexus3:8081;
+
         proxy_buffering off;
         proxy_request_buffering off;
     }
@@ -133,15 +22,114 @@ server {
 server {
     listen       80;
     listen       443 ssl;
-    server_name  k8s-gcr.cmdi.cmcc;
+
+    server_name  mirrors.cmdi.cmcc;
+
     proxy_connect_timeout 600;
     proxy_send_timeout    600;
     proxy_read_timeout    600;
     send_timeout          600;
+
     ssl_certificate /etc/nginx/ssl/server.crt;
     ssl_certificate_key /etc/nginx/ssl/server.key;
+
     location / {
-        proxy_pass   http://k8sgcr;
+        proxy_pass   http://nexus3:8081;
+
+        proxy_buffering off;
+        proxy_request_buffering off;
+    }
+}
+server {
+    listen       80;
+    listen       443 ssl;
+
+    server_name  hub.cmdi.cmcc;
+
+    proxy_connect_timeout 600;
+    proxy_send_timeout    600;
+    proxy_read_timeout    600;
+    send_timeout          600;
+
+    ssl_certificate /etc/nginx/ssl/server.crt;
+    ssl_certificate_key /etc/nginx/ssl/server.key;
+
+    location / {
+        resolver 127.0.0.11;
+        proxy_pass   http://nexus3:8082;
+
+        proxy_buffering off;
+        proxy_request_buffering off;
+    }
+}
+server {
+    listen       80;
+    listen       443 ssl;
+
+    server_name  reg.cmdi.cmcc;
+
+    proxy_connect_timeout 600;
+    proxy_send_timeout    600;
+    proxy_read_timeout    600;
+    send_timeout          600;
+
+    ssl_certificate /etc/nginx/ssl/server.crt;
+    ssl_certificate_key /etc/nginx/ssl/server.key;
+
+    location / {
+        proxy_pass   https://harbor.cmdi.cmcc;
+
+        proxy_buffering off;
+        proxy_request_buffering off;
+    }
+}
+server {
+    listen       80;
+    listen       443 ssl;
+
+    server_name  gcr.cmdi.cmcc;
+
+    proxy_connect_timeout 600;
+    proxy_send_timeout    600;
+    proxy_read_timeout    600;
+    send_timeout          600;
+
+    ssl_certificate /etc/nginx/ssl/server.crt;
+    ssl_certificate_key /etc/nginx/ssl/server.key;
+
+    location / {
+        resolver 127.0.0.11;
+        proxy_pass   http://reg-gcr:5000;
+
+        proxy_buffering off;
+        proxy_request_buffering off;
+    }
+    location /ui {
+        resolver 127.0.0.11;
+        proxy_pass   http://reg-ui:80;
+
+        proxy_buffering off;
+        proxy_request_buffering off;
+    }
+}
+server {
+    listen       80;
+    listen       443 ssl;
+
+    server_name  k8s-gcr.cmdi.cmcc;
+
+    proxy_connect_timeout 600;
+    proxy_send_timeout    600;
+    proxy_read_timeout    600;
+    send_timeout          600;
+
+    ssl_certificate /etc/nginx/ssl/server.crt;
+    ssl_certificate_key /etc/nginx/ssl/server.key;
+
+    location / {
+        resolver 127.0.0.11;
+        proxy_pass   http://reg-k8s-gcr:5000;
+
         proxy_buffering off;
         proxy_request_buffering off;
     }

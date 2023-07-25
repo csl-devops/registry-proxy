@@ -1,0 +1,14 @@
+authorityKeyIdentifier=keyid,issuer
+basicConstraints=CA:FALSE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+extendedKeyUsage = serverAuth
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1=nexus.cmdi.cmcc
+DNS.2=mirrors.cmdi.cmcc
+DNS.3=hub.cmdi.cmcc
+DNS.4=reg.cmdi.cmcc
+DNS.5=oda.cmdi.cmcc
+IP.1=127.0.0.1
+IP.2=192.168.101.129
